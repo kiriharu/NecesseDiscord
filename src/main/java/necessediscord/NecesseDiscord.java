@@ -9,9 +9,11 @@ import necesse.engine.network.server.Server;
 import necesse.engine.save.LoadData;
 import necesse.engine.save.SaveData;
 import necessediscord.events.PacketChatMessageEvent;
+import necessediscord.events.PacketDisconnectEvent;
 import necessediscord.listeners.DiscordChatListener;
 import necessediscord.listeners.GameChatListener;
-import necessediscord.wrappers.PacketMessageWrapper;
+import necessediscord.wrappers.ChatMessageEventWrapper;
+import necessediscord.wrappers.DisconnectEventWrapper;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -80,7 +82,14 @@ public class NecesseDiscord {
         GameEvents.addListener(PacketChatMessageEvent.class, new GameEventListener<PacketChatMessageEvent>() {
             @Override
             public void onEvent(PacketChatMessageEvent e) {
-                gameChatListener.sendMessage(new PacketMessageWrapper(e, server).toMessageCreateData());
+                gameChatListener.sendMessage(new ChatMessageEventWrapper(e, server).toMessage());
+            }
+        });
+        // TODO use ServerClientDisconnectEvent?
+        GameEvents.addListener(PacketDisconnectEvent.class, new GameEventListener<PacketDisconnectEvent>() {
+            @Override
+            public void onEvent(PacketDisconnectEvent e) {
+                gameChatListener.sendMessage(new DisconnectEventWrapper(e, server).toMessage());
             }
         });
     }
