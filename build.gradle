@@ -5,19 +5,19 @@ plugins {
 // Change the values below this to your mods values
 // To change the project name, edit the settings.gradle file
 
-project.ext.modID = "fair.examplemod" // The unique id of your mod. Must be all lowercase and cannot use special characters.
-project.ext.modName = "Example Mod" // The display name of your mod.
-project.ext.modVersion = "1.0" // Your current builds version. Must follow the xx.xx... format.
+project.ext.modID = "kiriharu.necessediscord" // The unique id of your mod. Must be all lowercase and cannot use special characters.
+project.ext.modName = "Necesse Discord" // The display name of your mod.
+project.ext.modVersion = "1.0.0" // Your current builds version. Must follow the xx.xx... format.
 project.ext.gameVersion = "0.24.1" // The target game version.
-project.ext.modDescription = "Just an example mod" // Short description of what your mod is.
-project.ext.author = "Fair" // Your name
+project.ext.modDescription = "Bridge between Necesse and Discord chats" // Short description of what your mod is.
+project.ext.author = "kiriharu" // Your name
 
 /**
  * When setting clientside to true, it means servers do not need this mod for clients to connect and vice versa.
  * IMPORTANT: If you set this to true, make sure that your mod does not add any content or do anything
  * that could cause clients and servers to desync. This includes registering any items, objects, tiles, packets etc.
  */
-project.ext.clientside = false
+project.ext.clientside = true
 
 /**
  * The other mod dependencies of this mod
@@ -28,7 +28,7 @@ project.ext.clientside = false
 //project.ext.modOptionalDependencies = ["optional.modid1", "optional.modid2"]
 
 // The path to the games install directory
-def gameDirectory = "C:/Program Files (x86)/Steam/steamapps/common/Necesse"
+def gameDirectory = "E:/Games/Steam/steamapps/common/Necesse"
 
 // =================================================
 // ========== DO NOT EDIT BELOW THIS LINE ==========
@@ -66,11 +66,8 @@ dependencies {
     implementation files(gameDirectory + "/Necesse.jar")
     implementation fileTree(gameDirectory + "/lib/")
     implementation fileTree("./mods/") // Add all mods located in local mods folder
-
-    // Add any third party library dependencies here. Remember to use libDepends, so that they will be added to your jar on build
-    // These are some examples:
-//    libDepends group: 'com.google.guava', name: 'guava', version: '31.1-jre'
-//    libDepends files("path/to/library/jar.jar")
+    //libDepends fileTree('libs')
+    libDepends "net.dv8tion:JDA:5.0.1"
 }
 
 task createAppID {
