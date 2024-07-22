@@ -66,8 +66,7 @@ dependencies {
     implementation files(gameDirectory + "/Necesse.jar")
     implementation fileTree(gameDirectory + "/lib/")
     implementation fileTree("./mods/") // Add all mods located in local mods folder
-    //libDepends fileTree('libs')
-    libDepends "net.dv8tion:JDA:5.0.1"
+    implementation ("net.dv8tion:JDA:5.0.1")
 }
 
 task createAppID {
@@ -129,7 +128,7 @@ task runServer(type: JavaExec) {
     description "Run server with current mod"
     dependsOn "buildModJar"
 
-    classpath = files(gameDirectory + "/Server.jar")
+    classpath = files(gameDirectory + "/Server.jar", "libs/*")
 
     main = "StartServer"
     jvmArgs "-Xms512m", "-Xmx4G", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseG1GC", "-XX:G1NewSizePercent=20", "-XX:G1ReservePercent=20", "-XX:MaxGCPauseMillis=50", "-XX:G1HeapRegionSize=32M"
@@ -140,7 +139,7 @@ task buildModJar(type: Jar) {
     group "necesse"
     description "Generates the mod jar into the build folder"
     dependsOn "classes"
-
+    duplicatesStrategy = DuplicatesStrategy.WARN
     doFirst {
         fileTree(dir: buildLocation).exclude("${jarName}.jar").visit { FileVisitDetails details ->
             delete details.file
@@ -151,7 +150,6 @@ task buildModJar(type: Jar) {
     from sourceSets.main.java.outputDir
     // Add the dependencies
     from configurations.libDepends.collect { it.isDirectory() ? it : zipTree(it) }
-
     archiveName "${jarName}.jar"
     destinationDir file(buildLocation)
 }
