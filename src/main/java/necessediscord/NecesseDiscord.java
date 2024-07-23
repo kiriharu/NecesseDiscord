@@ -4,11 +4,14 @@ import necesse.engine.GameEventListener;
 import necesse.engine.GameEvents;
 import necesse.engine.events.ServerClientConnectedEvent;
 import necesse.engine.events.ServerStartEvent;
+import necesse.engine.localization.message.GameMessage;
 import necesse.engine.modLoader.ModSettings;
 import necesse.engine.modLoader.annotations.ModEntry;
 import necesse.engine.network.server.Server;
 import necesse.engine.save.LoadData;
 import necesse.engine.save.SaveData;
+import necesse.entity.mobs.DeathMessageTable;
+import necessediscord.events.DeathMessageEvent;
 import necessediscord.events.PacketChatMessageEvent;
 import necessediscord.events.PacketDisconnectEvent;
 import necessediscord.listeners.DiscordChatListener;
@@ -16,11 +19,13 @@ import necessediscord.listeners.GameChatListener;
 import necessediscord.wrappers.ChatMessageEventWrapper;
 import necessediscord.wrappers.ConnectEventWrapper;
 import necessediscord.wrappers.DisconnectEventWrapper;
+import necessediscord.wrappers.IToDiscordMessage;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import utils.DiscordUtils;
 
 import java.util.EnumSet;
@@ -100,6 +105,14 @@ public class NecesseDiscord {
             @Override
             public void onEvent(ServerClientConnectedEvent e) {
                 gameChatListener.sendMessage(new ConnectEventWrapper(e));
+            }
+        });
+        // On death messages
+        // TODO: format this
+        GameEvents.addListener(DeathMessageEvent.class, new GameEventListener<DeathMessageEvent>() {
+            @Override
+            public void onEvent(DeathMessageEvent e) {
+                gameChatListener.sendMessage(() -> MessageCreateData.fromContent(e.message));
             }
         });
     }
