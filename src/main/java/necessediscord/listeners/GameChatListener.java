@@ -1,19 +1,18 @@
 package necessediscord.listeners;
 
-import necessediscord.wrappers.IToDiscordMessage;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import necesse.engine.GameEventListener;
+import necessediscord.NecesseDiscord;
+import necessediscord.events.PacketChatMessageEvent;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
-// TODO: remove this useless trash
-public class GameChatListener {
+public class GameChatListener extends GameEventListener<PacketChatMessageEvent> {
 
-    TextChannel channel;
 
-    public GameChatListener(TextChannel channel) {
-        this.channel = channel;
-    }
-
-    public Void sendMessage(IToDiscordMessage wrapper) {
-        channel.sendMessage(wrapper.toMessage()).queue();
-        return null;
+    @Override
+    public void onEvent(PacketChatMessageEvent event) {
+        String player = NecesseDiscord.SERVER.getClient(event.packet.slot).getName();
+        String msg = event.packet.gameMessage.translate();
+        MessageCreateData messageCreateData = MessageCreateData.fromContent(player + ": " + msg);
+        NecesseDiscord.CHANNEL.sendMessage(messageCreateData).queue();
     }
 }
