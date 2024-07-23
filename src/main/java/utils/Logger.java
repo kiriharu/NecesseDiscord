@@ -10,4 +10,8 @@ public class Logger {
         GameLog.out.println(prefix + message);
     }
 
+    public static void err(String message) {
+        GameLog.err.println(prefix + message);
+    }
+
 }

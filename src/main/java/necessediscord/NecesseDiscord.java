@@ -2,7 +2,6 @@ package necessediscord;
 
 import necesse.engine.GameEventListener;
 import necesse.engine.GameEvents;
-import necesse.engine.GameLog;
 import necesse.engine.events.ServerClientConnectedEvent;
 import necesse.engine.events.ServerStartEvent;
 import necesse.engine.modLoader.ModSettings;
@@ -17,13 +16,14 @@ import necessediscord.listeners.*;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.internal.utils.Checks;
 import net.dv8tion.jda.internal.utils.JDALogger;
 import utils.DiscordUtils;
 import utils.Logger;
 
+import java.math.BigInteger;
 import java.util.EnumSet;
 
 @ModEntry
@@ -33,6 +33,7 @@ public class NecesseDiscord {
     private JDA jda;
     private String discordToken = "Enter discord token here";
     private String channelId = "Enter channel id here";
+    private boolean loadedFlag = true;
 
     private boolean enableChatMessages = true;
     private boolean enableConnectMessages = true;
@@ -65,10 +66,37 @@ public class NecesseDiscord {
 
     public void init() {
         JDALogger.setFallbackLoggerEnabled(false);
+
+        try {
+            Checks.notEmpty(discordToken, "token");
+            Checks.noWhitespace(discordToken, "token");
+        } catch (IllegalArgumentException ignored) {
+            Logger.info(
+                "Found default or invalid token in config. " +
+                "Please, change token in kiriharu.necessediscord.cfg!"
+            );
+            loadedFlag = false;
+            return;
+        }
+
+        try {
+            Checks.notEmpty(channelId, "channelId");
+            Checks.noWhitespace(channelId, "channelId");
+            new BigInteger(channelId);
+        } catch (IllegalArgumentException ignored) {
+            Logger.info(
+                "Found default or invalid channelId in config. " +
+                "Please, change channelId in kiriharu.necessediscord.cfg!"
+            );
+            loadedFlag = false;
+            return;
+        }
+
         GameEvents.addListener(ServerStartEvent.class, new GameEventListener<ServerStartEvent>() {
             @Override
             public void onEvent(ServerStartEvent e) {
                 NecesseDiscord.SERVER = e.server;
+
                 jda = JDABuilder.createLight(
                         discordToken,
                         EnumSet.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
@@ -82,25 +110,29 @@ public class NecesseDiscord {
                     Logger.info("Get guild " + guild.getName());
                     NecesseDiscord.CHANNEL = guild.getTextChannelById(channelId);
                 } catch (InterruptedException err) {
+                    loadedFlag = false;
+                    Logger.err("Some error ocurred while trying to connect to discord");
                 }
             }
         });
 
-        if (enableChatMessages) {
-            Logger.info("Register chat messages listener");
-            GameEvents.addListener(PacketChatMessageEvent.class, new GameChatListener());
-        }
-        if (enableDisconnectMessages) {
-            Logger.info("Register disconnect messages listener");
-            GameEvents.addListener(PacketDisconnectEvent.class, new DisconnectMessageListener());
-        }
-        if (enableConnectMessages) {
-            Logger.info("Register connect messages listener");
-            GameEvents.addListener(ServerClientConnectedEvent.class, new ConnectMessageListener());
-        }
-        if (enableDeathMessages) {
-            Logger.info("Register death messages listener");
-            GameEvents.addListener(DeathMessageEvent.class, new DeathMessageListener());
+        if (loadedFlag) {
+            if (enableChatMessages) {
+                Logger.info("Register chat messages listener");
+                GameEvents.addListener(PacketChatMessageEvent.class, new GameChatListener());
+            }
+            if (enableDisconnectMessages) {
+                Logger.info("Register disconnect messages listener");
+                GameEvents.addListener(PacketDisconnectEvent.class, new DisconnectMessageListener());
+            }
+            if (enableConnectMessages) {
+                Logger.info("Register connect messages listener");
+                GameEvents.addListener(ServerClientConnectedEvent.class, new ConnectMessageListener());
+            }
+            if (enableDeathMessages) {
+                Logger.info("Register death messages listener");
+                GameEvents.addListener(DeathMessageEvent.class, new DeathMessageListener());
+            }
         }
     }
 
