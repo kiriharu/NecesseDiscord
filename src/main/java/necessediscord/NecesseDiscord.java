@@ -2,6 +2,7 @@ package necessediscord;
 
 import necesse.engine.GameEventListener;
 import necesse.engine.GameEvents;
+import necesse.engine.events.ServerClientConnectedEvent;
 import necesse.engine.events.ServerStartEvent;
 import necesse.engine.modLoader.ModSettings;
 import necesse.engine.modLoader.annotations.ModEntry;
@@ -13,6 +14,7 @@ import necessediscord.events.PacketDisconnectEvent;
 import necessediscord.listeners.DiscordChatListener;
 import necessediscord.listeners.GameChatListener;
 import necessediscord.wrappers.ChatMessageEventWrapper;
+import necessediscord.wrappers.ConnectEventWrapper;
 import necessediscord.wrappers.DisconnectEventWrapper;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -79,17 +81,25 @@ public class NecesseDiscord {
         });
 
         // TODO maybe register from separated class?
+        // On message send in chat
         GameEvents.addListener(PacketChatMessageEvent.class, new GameEventListener<PacketChatMessageEvent>() {
             @Override
             public void onEvent(PacketChatMessageEvent e) {
-                gameChatListener.sendMessage(new ChatMessageEventWrapper(e, server).toMessage());
+                gameChatListener.sendMessage(new ChatMessageEventWrapper(e, server));
             }
         });
-        // TODO use ServerClientDisconnectEvent?
+        // On player disconnect
         GameEvents.addListener(PacketDisconnectEvent.class, new GameEventListener<PacketDisconnectEvent>() {
             @Override
             public void onEvent(PacketDisconnectEvent e) {
-                gameChatListener.sendMessage(new DisconnectEventWrapper(e, server).toMessage());
+                gameChatListener.sendMessage(new DisconnectEventWrapper(e, server));
+            }
+        });
+        // On player connected
+        GameEvents.addListener(ServerClientConnectedEvent.class, new GameEventListener<ServerClientConnectedEvent>() {
+            @Override
+            public void onEvent(ServerClientConnectedEvent e) {
+                gameChatListener.sendMessage(new ConnectEventWrapper(e));
             }
         });
     }
