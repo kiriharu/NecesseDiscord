@@ -20,11 +20,15 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.internal.utils.Checks;
 import net.dv8tion.jda.internal.utils.JDALogger;
+import utils.DiscordActivity;
 import utils.DiscordUtils;
 import utils.Logger;
 
 import java.math.BigInteger;
 import java.util.EnumSet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @ModEntry
 public class NecesseDiscord {
@@ -35,10 +39,13 @@ public class NecesseDiscord {
     private String channelId = "Enter channel id here";
     private boolean loadedFlag = true;
 
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
     private boolean enableChatMessages = true;
     private boolean enableConnectMessages = true;
     private boolean enableDisconnectMessages = true;
     private boolean enableDeathMessages = true;
+    private boolean enableDiscordActivity = true;
 
     public ModSettings initSettings() {
         return new ModSettings() {
@@ -50,6 +57,7 @@ public class NecesseDiscord {
                 saveData.addBoolean("enableConnectMessages", enableConnectMessages);
                 saveData.addBoolean("enableDisconnectMessages", enableDisconnectMessages);
                 saveData.addBoolean("enableDeathMessages", enableDeathMessages);
+                saveData.addBoolean("enableDiscordActivity", enableDiscordActivity);
             }
 
             @Override
@@ -60,6 +68,7 @@ public class NecesseDiscord {
                 enableConnectMessages = loadData.getBoolean("enableConnectMessages");
                 enableDisconnectMessages = loadData.getBoolean("enableDisconnectMessages");
                 enableDeathMessages = loadData.getBoolean("enableDeathMessages");
+                enableDiscordActivity = loadData.getBoolean("enableDiscordActivity");
             }
         };
     }
@@ -113,7 +122,14 @@ public class NecesseDiscord {
                     loadedFlag = false;
                     Logger.err("Some error ocurred while trying to connect to discord");
                 }
+
+                if (loadedFlag & enableDiscordActivity) {
+                    Logger.info("Enable Discord activity updater");
+                    DiscordActivity activity = new DiscordActivity(jda);
+                    scheduler.scheduleWithFixedDelay(activity, 30, 30, TimeUnit.SECONDS);
+                }
             }
+
         });
 
         if (loadedFlag) {
@@ -134,11 +150,15 @@ public class NecesseDiscord {
                 GameEvents.addListener(DeathMessageEvent.class, new DeathMessageListener());
             }
         }
+
     }
 
     public void dispose() {
         if (jda != null) {
-            jda.shutdownNow();
+            jda.shutdown();
+        }
+        if (scheduler != null) {
+            scheduler.shutdown();
         }
     }
 
