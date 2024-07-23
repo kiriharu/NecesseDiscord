@@ -2,6 +2,7 @@ package necessediscord;
 
 import necesse.engine.GameEventListener;
 import necesse.engine.GameEvents;
+import necesse.engine.GameLog;
 import necesse.engine.events.ServerClientConnectedEvent;
 import necesse.engine.events.ServerStartEvent;
 import necesse.engine.modLoader.ModSettings;
@@ -19,7 +20,9 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.internal.utils.JDALogger;
 import utils.DiscordUtils;
+import utils.Logger;
 
 import java.util.EnumSet;
 
@@ -31,52 +34,80 @@ public class NecesseDiscord {
     private String discordToken = "Enter discord token here";
     private String channelId = "Enter channel id here";
 
+    private boolean enableChatMessages = true;
+    private boolean enableConnectMessages = true;
+    private boolean enableDisconnectMessages = true;
+    private boolean enableDeathMessages = true;
+
     public ModSettings initSettings() {
         return new ModSettings() {
             @Override
             public void addSaveData(SaveData saveData) {
                 saveData.addSafeString("token", discordToken);
                 saveData.addSafeString("channelId", channelId);
+                saveData.addBoolean("enableChatMessages", enableChatMessages);
+                saveData.addBoolean("enableConnectMessages", enableConnectMessages);
+                saveData.addBoolean("enableDisconnectMessages", enableDisconnectMessages);
+                saveData.addBoolean("enableDeathMessages", enableDeathMessages);
             }
 
             @Override
             public void applyLoadData(LoadData loadData) {
                 discordToken = loadData.getSafeString("token");
                 channelId = loadData.getSafeString("channelId");
+                enableChatMessages = loadData.getBoolean("enableChatMessages");
+                enableConnectMessages = loadData.getBoolean("enableConnectMessages");
+                enableDisconnectMessages = loadData.getBoolean("enableDisconnectMessages");
+                enableDeathMessages = loadData.getBoolean("enableDeathMessages");
             }
         };
     }
 
     public void init() {
+        JDALogger.setFallbackLoggerEnabled(false);
         GameEvents.addListener(ServerStartEvent.class, new GameEventListener<ServerStartEvent>() {
             @Override
             public void onEvent(ServerStartEvent e) {
                 NecesseDiscord.SERVER = e.server;
-                // TODO: add callback thread pool to increase perfomance
                 jda = JDABuilder.createLight(
-                            discordToken,
-                            EnumSet.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
-                        )
-                        .addEventListeners(new DiscordChatListener(NecesseDiscord.SERVER))
-                        .setAutoReconnect(true)
-                        .build();
+                        discordToken,
+                        EnumSet.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
+                    )
+                    .addEventListeners(new DiscordChatListener(NecesseDiscord.SERVER))
+                    .setAutoReconnect(true)
+                    .build();
                 try {
                     jda.awaitReady();
                     Guild guild = DiscordUtils.getMainGuild(jda);
-                    System.out.println("Get guild " + guild.getName());
+                    Logger.info("Get guild " + guild.getName());
                     NecesseDiscord.CHANNEL = guild.getTextChannelById(channelId);
                 } catch (InterruptedException err) {
-                    // TODO: exit event to remove connections, etc...
-                    System.out.println("JDA is not loaded");
                 }
             }
         });
 
-        GameEvents.addListener(PacketChatMessageEvent.class, new GameChatListener());
-        GameEvents.addListener(PacketDisconnectEvent.class, new DisconnectMessageListener());
-        GameEvents.addListener(ServerClientConnectedEvent.class, new ConnectMessageListener());
-        GameEvents.addListener(DeathMessageEvent.class, new DeathMessageListener());
+        if (enableChatMessages) {
+            Logger.info("Register chat messages listener");
+            GameEvents.addListener(PacketChatMessageEvent.class, new GameChatListener());
+        }
+        if (enableDisconnectMessages) {
+            Logger.info("Register disconnect messages listener");
+            GameEvents.addListener(PacketDisconnectEvent.class, new DisconnectMessageListener());
+        }
+        if (enableConnectMessages) {
+            Logger.info("Register connect messages listener");
+            GameEvents.addListener(ServerClientConnectedEvent.class, new ConnectMessageListener());
+        }
+        if (enableDeathMessages) {
+            Logger.info("Register death messages listener");
+            GameEvents.addListener(DeathMessageEvent.class, new DeathMessageListener());
+        }
+    }
 
+    public void dispose() {
+        if (jda != null) {
+            jda.shutdownNow();
+        }
     }
 
 }
