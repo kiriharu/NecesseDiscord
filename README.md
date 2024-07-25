@@ -42,7 +42,7 @@ Currently, installing is a little complicated, because I have troubles to build 
 1. Download last mod release from [releases](https://github.com/kiriharu/NecesseDiscord/releases).
 2. Move it to mods server folder
 3. [Download JDA dependency](https://github.com/kiriharu/NecesseDiscord/blob/master/libs/JDA-5.0.1-withDependencies.jar).
-4. Create folder called "vendor" and move it to it.
+4. Create folder called "vendor" and move downloaded dependency to it.
 5. Add vendor dir and server jar to classpath and run server:
     ```shell
     java -cp "Server.jar:vendor/*" StartServer 
