@@ -13,14 +13,21 @@ import org.jetbrains.annotations.NotNull;
 public class DiscordChatListener extends ListenerAdapter {
 
     private final Server server;
+    private final String channelId;
 
-    public DiscordChatListener(Server server) {
+    public DiscordChatListener(Server server, String channelId) {
         this.server = server;
+        this.channelId = channelId;
     }
 
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         // Ignore bots message to remove duplicates
         if (event.getAuthor().isBot()) {
+            return;
+        }
+
+        // Skip messages that not belong to channel that setted in config
+        if (!String.valueOf(event.getChannel().asTextChannel().getIdLong()).equals(channelId)) {
             return;
         }
 

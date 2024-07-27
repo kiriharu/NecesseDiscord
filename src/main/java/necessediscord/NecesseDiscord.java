@@ -110,7 +110,7 @@ public class NecesseDiscord {
                         discordToken,
                         EnumSet.of(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
                     )
-                    .addEventListeners(new DiscordChatListener(NecesseDiscord.SERVER))
+                    .addEventListeners(new DiscordChatListener(NecesseDiscord.SERVER, channelId))
                     .setAutoReconnect(true)
                     .build();
                 try {
