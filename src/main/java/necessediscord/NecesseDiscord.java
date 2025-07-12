@@ -9,6 +9,7 @@ import necesse.engine.modLoader.annotations.ModEntry;
 import necesse.engine.network.server.Server;
 import necesse.engine.save.LoadData;
 import necesse.engine.save.SaveData;
+import necessediscord.events.AchievementUnlockEvent;
 import necessediscord.events.DeathMessageEvent;
 import necessediscord.events.PacketChatMessageEvent;
 import necessediscord.events.PacketDisconnectEvent;
@@ -46,6 +47,7 @@ public class NecesseDiscord {
     private boolean enableDisconnectMessages = true;
     private boolean enableDeathMessages = true;
     private boolean enableDiscordActivity = true;
+    private boolean enableAchievementMessages = true;
 
     public ModSettings initSettings() {
         return new ModSettings() {
@@ -58,6 +60,7 @@ public class NecesseDiscord {
                 saveData.addBoolean("enableDisconnectMessages", enableDisconnectMessages);
                 saveData.addBoolean("enableDeathMessages", enableDeathMessages);
                 saveData.addBoolean("enableDiscordActivity", enableDiscordActivity);
+                saveData.addBoolean("enableAchievementMessages", enableAchievementMessages);
             }
 
             @Override
@@ -69,6 +72,7 @@ public class NecesseDiscord {
                 enableDisconnectMessages = loadData.getBoolean("enableDisconnectMessages");
                 enableDeathMessages = loadData.getBoolean("enableDeathMessages");
                 enableDiscordActivity = loadData.getBoolean("enableDiscordActivity");
+                enableAchievementMessages = loadData.getBoolean("enableAchievementMessages");
             }
         };
     }
@@ -148,6 +152,10 @@ public class NecesseDiscord {
             if (enableDeathMessages) {
                 Logger.info("Register death messages listener");
                 GameEvents.addListener(DeathMessageEvent.class, new DeathMessageListener());
+            }
+            if (enableAchievementMessages) {
+                Logger.info("Register achievement unlock listener");
+                GameEvents.addListener(AchievementUnlockEvent.class, new AchievementUnlockListener());
             }
         }
 
